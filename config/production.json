@@ -1,0 +1,47 @@
+{
+  "database": {
+    "path": "data/trading_data.duckdb",
+    "backup_enabled": true,
+    "backup_retention_days": 30,
+    "max_connections": 10
+  },
+  "logging": {
+    "level": "INFO",
+    "retention_days": 90,
+    "enable_debug": false,
+    "log_files": {
+      "main": "logs/production.log",
+      "backtests": "logs/backtests/",
+      "screening": "logs/screening/",
+      "streaming": "logs/streaming/"
+    }
+  },
+  "performance": {
+    "max_workers": 4,
+    "batch_size": 100,
+    "rate_limit_delay": 0.1,
+    "memory_limit_mb": 2048
+  },
+  "risk_management": {
+    "max_position_size": 0.1,
+    "stop_loss_pct": 0.02,
+    "take_profit_pct": 0.04,
+    "max_drawdown": 0.15,
+    "max_positions": 5
+  },
+  "monitoring": {
+    "enable_monitoring": true,
+    "metrics_port": 8080,
+    "health_check_enabled": true,
+    "alert_thresholds": {
+      "max_drawdown": 0.1,
+      "min_win_rate": 0.45,
+      "max_consecutive_losses": 5
+    }
+  },
+  "security": {
+    "enable_ssl": true,
+    "api_key_encryption": true,
+    "session_timeout_minutes": 30
+  }
+}

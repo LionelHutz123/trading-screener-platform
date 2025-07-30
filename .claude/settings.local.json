@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker:*)",
+      "Bash(ls:*)",
+      "Bash(wget:*)",
+      "Bash(tar:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(mv:*)",
+      "Bash(./doctl version)",
+      "Bash(cp:*)",
+      "Bash(openssl rand:*)",
+      "Bash(powershell:*)",
+      "Bash(ssh-keygen:*)",
+      "Bash(ssh:*)",
+      "Bash(timeout 15 ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 root@64.225.13.174 exit)",
+      "Bash(ping:*)",
+      "Bash(python:*)",
+      "Bash(timeout:*)",
+      "Bash(git init:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": []
+  }
+}

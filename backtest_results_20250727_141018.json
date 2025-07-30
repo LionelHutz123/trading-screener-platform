@@ -1,0 +1,7 @@
+{
+  "AAPL_1h_backtest": {
+    "success": false,
+    "processing_time": 0.11579775810241699,
+    "error": "No data found for AAPL 1h"
+  }
+}

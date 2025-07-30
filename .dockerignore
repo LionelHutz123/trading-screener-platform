@@ -1,0 +1,63 @@
+# Data files
+*.duckdb
+*.db
+*.csv
+data/
+backups/
+
+# Logs
+logs/
+*.log
+
+# Cache and temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large files
+*.duckdb.wal
+*.duckdb-shm
+*.duckdb-wal
+
+# Test files
+test_*.py
+*_test.py
+
+# Documentation
+*.md
+docs/
+
+# Git
+.git/
+.gitignore
+
+# Environment files
+.env*
+!.env.example
+
+# Docker files (avoid recursive copying)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts and utilities
+*.ps1
+*.sh
+*.bat
+
+# Results and outputs
+backtest_results_*.json
+demo_*.duckdb 

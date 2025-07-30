@@ -1,0 +1,166 @@
+# Digital Ocean App Platform Configuration
+# Trading Screener & Backtesting Platform
+# Repository: https://github.com/LionelHutz123/trading-screener-platform
+
+name: trading-screener-platform
+region: sfo
+
+# Main Trading API Service
+services:
+  - name: trading-api
+    source_dir: /
+    github:
+      repo: LionelHutz123/trading-screener-platform
+      branch: main
+      deploy_on_push: true
+    
+    # Build configuration
+    build_command: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    
+    # Runtime configuration  
+    run_command: python app_platform_api.py
+    
+    # Instance configuration
+    instance_count: 1
+    instance_size_slug: professional-xs  # 1 vCPU, 1GB RAM
+    
+    # Networking
+    http_port: 8080
+    
+    # Health monitoring
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 60
+      period_seconds: 30
+      timeout_seconds: 10
+      success_threshold: 1
+      failure_threshold: 3
+    
+    # Routing
+    routes:
+      - path: /
+      - path: /api
+      - path: /health
+    
+    # Environment variables
+    envs:
+      # Trading API Configuration
+      - key: ALPACA_API_KEY
+        value: PK3FA0MFPOWADZVIJBF7
+        type: GENERAL
+        
+      - key: ALPACA_SECRET_KEY
+        value: iemytkjQt5yxRPBoSe62DpyoQ5b2oXBunV8e1BiA
+        type: SECRET
+        
+      - key: ALPACA_BASE_URL
+        value: https://paper-api.alpaca.markets
+        type: GENERAL
+        
+      # Database Configuration
+      - key: DATABASE_PATH
+        value: /app/data/trading_data.duckdb
+        type: GENERAL
+        
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+        type: GENERAL
+        
+      # Security
+      - key: REDIS_PASSWORD
+        value: y9+DMl5bQTHIdkDtp2Q8SNhbTnfVI3tvG5MMiyIYH4w=
+        type: SECRET
+        
+      # Application Configuration
+      - key: ENV
+        value: production
+        type: GENERAL
+        
+      - key: NODE_ENV
+        value: production
+        type: GENERAL
+        
+      - key: PORT
+        value: "8080"
+        type: GENERAL
+        
+      - key: PYTHONPATH
+        value: /app
+        type: GENERAL
+        
+      - key: PYTHONUNBUFFERED
+        value: "1"
+        type: GENERAL
+
+# Managed Database Services
+databases:
+  # PostgreSQL for application data
+  - name: db
+    engine: PG
+    version: "15"
+    size: db-s-1vcpu-1gb
+    num_nodes: 1
+    
+  # Redis for caching and real-time data
+  - name: redis-cache
+    engine: REDIS
+    version: "7"
+    size: db-s-1vcpu-1gb
+
+# Background Jobs for Backtesting
+jobs:
+  # Comprehensive backtesting job
+  - name: backtest-runner
+    source_dir: /
+    github:
+      repo: LionelHutz123/trading-screener-platform
+      branch: main
+    
+    # Build command
+    build_command: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    
+    # Backtesting command
+    run_command: |
+      python main.py --mode backtesting \
+        --symbols AAPL MSFT GOOGL NVDA META TSLA LLY AVGO AMZN \
+        --timeframes 1h 4h 1d \
+        --start-date 2022-01-01 \
+        --end-date 2024-01-01
+    
+    # High-performance instance for backtesting
+    instance_count: 1
+    instance_size_slug: professional-m  # 2 vCPU, 4GB RAM
+    
+    # Job configuration
+    kind: POST_DEPLOY  # Run after successful deployment
+    
+    # Environment variables (inherit from service)
+    envs:
+      - key: ALPACA_API_KEY
+        value: PK3FA0MFPOWADZVIJBF7
+        type: GENERAL
+        
+      - key: ALPACA_SECRET_KEY
+        value: iemytkjQt5yxRPBoSe62DpyoQ5b2oXBunV8e1BiA
+        type: SECRET
+        
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+        type: GENERAL
+        
+      - key: ENV
+        value: production
+        type: GENERAL
+
+# Static site for documentation (optional)
+static_sites:
+  - name: docs
+    source_dir: /docs
+    build_command: echo "Documentation ready"
+    output_dir: /
+    routes:
+      - path: /docs

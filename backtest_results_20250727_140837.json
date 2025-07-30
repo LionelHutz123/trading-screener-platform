@@ -1,0 +1,7 @@
+{
+  "AAPL_1h_backtest": {
+    "success": false,
+    "processing_time": 0.7389686107635498,
+    "error": "IO Error: Cannot open file \"c:\\users\\python\\pyproj\\untitled folder\\trading_data.duckdb\": The process cannot access the file because it is being used by another process.\r\n\nFile is already open in \nC:\\Program Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\\python3.11.exe (PID 3044)"
+  }
+}

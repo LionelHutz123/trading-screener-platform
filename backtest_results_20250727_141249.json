@@ -1,0 +1,44 @@
+{
+  "AAPL_1h_backtest": {
+    "success": true,
+    "processing_time": 15.221806049346924,
+    "error": null,
+    "result": {
+      "total_trades": 0,
+      "winning_trades": 0,
+      "losing_trades": 0,
+      "win_rate": 0.0,
+      "avg_return": 0.0,
+      "total_return": 0.0,
+      "max_drawdown": 0.0,
+      "sharpe_ratio": 0.0,
+      "sortino_ratio": 0.0,
+      "volatility": 0.0,
+      "var_95": 0.0,
+      "max_consecutive_losses": 0,
+      "trades": [],
+      "equity_curve": "timestamp\n2024-01-02 04:00:00    100000.0\n2024-01-02 05:00:00    100000.0\n2024-01-02 06:00:00    100000.0\n2024-01-02 07:00:00    100000.0\n2024-01-02 08:00:00    100000.0\n                         ...   \n2024-01-30 15:00:00    100000.0\n2024-01-30 16:00:00    100000.0\n2024-01-30 17:00:00    100000.0\n2024-01-30 18:00:00    100000.0\n2024-01-30 19:00:00    100000.0\nLength: 320, dtype: float64",
+      "drawdown_curve": "Series([], dtype: float64)",
+      "strategy_name": "Unified Strategy",
+      "symbol": "AAPL",
+      "timeframe": "1h",
+      "start_date": "2024-01-01 00:00:00",
+      "end_date": "2024-01-31 00:00:00",
+      "parameters": {
+        "initial_capital": 100000.0,
+        "position_size_pct": 0.1,
+        "max_positions": 5,
+        "stop_loss_pct": 0.02,
+        "take_profit_pct": 0.04,
+        "trailing_stop": false,
+        "trailing_stop_pct": 0.01,
+        "min_signal_strength": 0.6,
+        "min_confluence_signals": 2,
+        "min_hold_period": 5,
+        "max_hold_period": 50,
+        "commission_pct": 0.001,
+        "slippage_pct": 0.0005
+      }
+    }
+  }
+}

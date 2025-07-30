@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Application specific
+logs/
+*.log
+data/*.duckdb*
+backups/
+.env
+.env.local
+.env.production
+.app_id
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Temporary files
+*.tmp
+*.temp
+
+# Cache
+.cache/
+*.cache
+
+# Data files (too large for Git)
+*.csv
+*.duckdb*
+*.db
+
+# Deployment
+.do/deploy_*
+deploy_*.ps1
+simple_*.ps1
+minimal_*.ps1
+working_*.ps1
+create_*.ps1

@@ -1,0 +1,178 @@
+version: '3.8'
+
+services:
+  # Redis for caching and real-time data
+  redis:
+    image: redis:7-alpine
+    container_name: trading-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - trading-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Main trading screener backend
+  trading-screener:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: trading-screener
+    restart: unless-stopped
+    environment:
+      - ENV=production
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - .env.production
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config
+      - ./backups:/app/backups
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "python", "health_check.py"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - trading-network
+
+  # Frontend (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trading-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://trading-screener:8080
+      - NEXT_PUBLIC_WS_URL=ws://trading-screener:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - trading-screener
+    networks:
+      - trading-network
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: trading-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - trading-screener
+      - frontend
+    networks:
+      - trading-network
+
+  # Monitoring with Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: trading-monitoring
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - trading-network
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: trading-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - trading-network
+
+  # Database backup service
+  database-backup:
+    image: alpine:latest
+    container_name: trading-backup
+    restart: unless-stopped
+    volumes:
+      - ./data:/data
+      - ./backups:/backups
+    command: |
+      sh -c '
+      while true; do
+        # Daily backup
+        cp /data/trading_data.duckdb /backups/daily/backup_$(date +%Y%m%d_%H%M%S).duckdb
+        
+        # Weekly backup (keep only last 4 weeks)
+        if [ $(date +%u) -eq 1 ]; then
+          cp /data/trading_data.duckdb /backups/weekly/backup_$(date +%Y%m%d).duckdb
+          find /backups/weekly -name "backup_*.duckdb" -mtime +28 -delete
+        fi
+        
+        # Clean old daily backups (keep last 7 days)
+        find /backups/daily -name "backup_*.duckdb" -mtime +7 -delete
+        
+        sleep 86400
+      done
+      '
+    networks:
+      - trading-network
+
+  # Log aggregation with Filebeat
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.10.0
+    container_name: trading-filebeat
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./logs:/usr/share/filebeat/logs:ro
+      - ./monitoring/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: filebeat -e -strict.perms=false
+    networks:
+      - trading-network
+
+networks:
+  trading-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  grafana-storage:
+  prometheus-data:
+  redis-data:

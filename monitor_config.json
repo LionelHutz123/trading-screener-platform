@@ -1,0 +1,41 @@
+{
+  "check_interval": 30,
+  "hung_threshold": 300,
+  "cpu_threshold": 90,
+  "memory_threshold": 85,
+  "processes_to_monitor": [
+    "python",
+    "docker",
+    "trading-screener",
+    "grafana",
+    "main.py",
+    "alpaca",
+    "backtest"
+  ],
+  "ssh_server": "root@159.203.131.140",
+  "ssh_passphrase": "mcoveney@gmail.com",
+  "alert_settings": {
+    "enable_email_alerts": false,
+    "enable_slack_alerts": false,
+    "max_hung_processes_before_alert": 3
+  },
+  "docker_monitoring": {
+    "check_containers": true,
+    "restart_unhealthy_containers": false,
+    "container_health_timeout": 60
+  },
+  "system_monitoring": {
+    "check_cpu_usage": true,
+    "check_memory_usage": true,
+    "check_disk_usage": true,
+    "cpu_warning_threshold": 80,
+    "memory_warning_threshold": 80,
+    "disk_warning_threshold": 85
+  },
+  "logging": {
+    "log_level": "INFO",
+    "log_file": "process_monitor.log",
+    "max_log_size_mb": 10,
+    "backup_count": 5
+  }
+} 

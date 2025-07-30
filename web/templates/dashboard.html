@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Live Analysis Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="symbol-selector">
+        <input type="text" id="symbol-input" placeholder="Enter symbol (e.g. AAPL)">
+        <button onclick="loadSymbolData()">Load</button>
+    </div>
+    
+    <div class="chart-section">
+        <div id="price-chart" class="plotly-chart"></div>
+        <div class="ta-overlay-controls">
+            <label>
+                <input type="checkbox" id="show-order-blocks" checked> Order Blocks
+            </label>
+            <label>
+                <input type="checkbox" id="show-divergences" checked> RSI Divergence
+            </label>
+        </div>
+    </div>
+    
+    <div class="ta-signals">
+        <div class="signal-card" id="order-blocks-card">
+            <h3>Order Blocks</h3>
+            <div class="signal-list"></div>
+        </div>
+        <div class="signal-card" id="divergence-card">
+            <h3>Divergences</h3>
+            <div class="signal-list"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentSymbol = '';
+const ws = new WebSocket(`ws://${window.location.host}/ws`);
+
+function loadSymbolData() {
+    const symbol = document.getElementById('symbol-input').value.toUpperCase();
+    if(symbol) {
+        currentSymbol = symbol;
+        fetch(`/full-analysis/${symbol}/4h`)
+            .then(response => response.json())
+            .then(updateChartData);
+    }
+}
+
+function updateChartData(analysis) {
+    const layout = {
+        title: `${currentSymbol} 4H Analysis`,
+        showlegend: false,
+        xaxis: { rangeslider: { visible: false } }
+    };
+    
+    const priceTrace = {
+        x: analysis.timestamps,
+        close: analysis.closes,
+        high: analysis.highs,
+        low: analysis.lows,
+        open: analysis.opens,
+        type: 'candlestick',
+        name: 'Price'
+    };
+
+    Plotly.newPlot('price-chart', [priceTrace], layout);
+}
+</script>
+{% endblock %}

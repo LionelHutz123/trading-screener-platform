@@ -1,0 +1,97 @@
+# Digital Ocean App Platform Configuration
+# Trading Screener & Backtesting Platform
+
+name: trading-screener
+region: sfo
+
+services:
+  # Main Trading Screener API
+  - name: trading-api
+    source_dir: /
+    github:
+      repo: your-repo/trading-screener
+      branch: main
+    dockerfile_path: Dockerfile
+    
+    envs:
+      - key: ALPACA_API_KEY
+        value: PK3FA0MFPOWADZVIJBF7
+      - key: ALPACA_SECRET_KEY
+        value: iemytkjQt5yxRPBoSe62DpyoQ5b2oXBunV8e1BiA
+        type: SECRET
+      - key: REDIS_PASSWORD
+        value: y9+DMl5bQTHIdkDtp2Q8SNhbTnfVI3tvG5MMiyIYH4w=
+        type: SECRET
+      - key: ENV
+        value: production
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+        
+    instance_count: 1
+    instance_size_slug: professional-xs  # 1 vCPU, 1GB RAM
+    
+    http_port: 8080
+    
+    health_check:
+      http_path: /health
+    
+    routes:
+      - path: /api
+      - path: /health
+      
+  # Frontend Dashboard
+  - name: frontend
+    source_dir: /frontend
+    build_command: npm run build
+    output_dir: out
+    
+    envs:
+      - key: NEXT_PUBLIC_API_URL
+        value: ${trading-api.PUBLIC_URL}
+        
+    routes:
+      - path: /
+
+# Managed Database
+databases:
+  - name: db
+    engine: PG
+    version: "14"
+    size: db-s-1vcpu-1gb  # 1 vCPU, 1GB RAM, 10GB storage
+    
+# Managed Redis
+  - name: redis
+    engine: REDIS
+    version: "7"
+    size: db-s-1vcpu-1gb
+
+# Background Jobs for Backtesting
+jobs:
+  - name: backtest-job
+    source_dir: /
+    dockerfile_path: Dockerfile
+    
+    envs:
+      - key: ALPACA_API_KEY
+        value: PK3FA0MFPOWADZVIJBF7
+      - key: ALPACA_SECRET_KEY
+        value: iemytkjQt5yxRPBoSe62DpyoQ5b2oXBunV8e1BiA
+        type: SECRET
+      - key: DATABASE_URL
+        value: ${db.DATABASE_URL}
+      - key: REDIS_URL
+        value: ${redis.DATABASE_URL}
+        
+    instance_count: 1
+    instance_size_slug: professional-m  # 2 vCPU, 4GB RAM for backtesting
+    
+    run_command: python main.py --mode backtesting --symbols AAPL MSFT GOOGL NVDA META --timeframes 1h 4h 1d --start-date 2023-01-01 --end-date 2024-01-01
+
+# Static assets and monitoring
+static_sites:
+  - name: docs
+    source_dir: /docs
+    build_command: echo "Static docs"
+    output_dir: /
+    routes:
+      - path: /docs

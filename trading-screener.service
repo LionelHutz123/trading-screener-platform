@@ -1,0 +1,26 @@
+[Unit]
+Description=Trading Screener Service
+After=network.target
+
+[Service]
+Type=simple
+User=trading
+Group=trading
+WorkingDirectory=/opt/trading-screener
+Environment=PYTHONPATH=/opt/trading-screener
+Environment=ENV=production
+ExecStart=/usr/bin/python3 main.py --mode screening --symbols AAPL,MSFT,GOOGL --timeframes 1h,4h
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/trading-screener/data /opt/trading-screener/logs
+
+[Install]
+WantedBy=multi-user.target

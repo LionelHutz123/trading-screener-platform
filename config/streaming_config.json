@@ -1,0 +1,109 @@
+{
+  "database_path": "data/trading_data.duckdb",
+  
+  "symbols": [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA",
+    "META", "NVDA", "NFLX", "SPY", "QQQ"
+  ],
+  
+  "timeframes": ["1m", "5m", "15m", "1h", "4h"],
+  
+  "alpaca": {
+    "api_key": "${ALPACA_API_KEY}",
+    "secret_key": "${ALPACA_SECRET_KEY}",
+    "base_url": "https://data.alpaca.markets",
+    "data_feed": "sip",
+    "buffer_size": 1000,
+    "flush_interval": 5,
+    "enable_real_time_analysis": true,
+    "analysis_interval": 60
+  },
+  
+  "signal_processor": {
+    "min_confidence": 0.6,
+    "min_strength": 0.7,
+    "lookback_periods": 100,
+    "enable_confluence_only": true,
+    "min_confluence_signals": 2,
+    "max_concurrent_signals": 10,
+    "signal_validity_minutes": 30,
+    "batch_size": 5,
+    "processing_interval": 60,
+    "critical_strength": 0.9,
+    "high_strength": 0.8,
+    "medium_strength": 0.7,
+    "signal_cooldown_minutes": 15
+  },
+  
+  "alerts": {
+    "smtp_host": "${SMTP_HOST}",
+    "smtp_port": 587,
+    "smtp_username": "${SMTP_USERNAME}",
+    "smtp_password": "${SMTP_PASSWORD}",
+    "email_from": "alerts@tradingscreener.com",
+    
+    "webhook_urls": {
+      "default": "${WEBHOOK_URL}",
+      "slack": "${SLACK_WEBHOOK_URL}",
+      "discord": "${DISCORD_WEBHOOK_URL}"
+    },
+    
+    "webhook_timeout": 10,
+    "min_priority": 2,
+    "enabled_channels": ["email", "websocket", "webhook"],
+    "max_alerts_per_minute": 10,
+    "max_alerts_per_symbol": 5,
+    "max_retries": 3,
+    "retry_delay": 5,
+    "max_queue_size": 1000,
+    "batch_size": 10,
+    "processing_interval": 5,
+    
+    "recipients": {
+      "email": ["${ALERT_EMAIL}"],
+      "webhook": ["default"]
+    }
+  },
+  
+  "update_scheduler": {
+    "timeframe_frequencies": {
+      "1m": "real_time",
+      "5m": "frequent", 
+      "15m": "regular",
+      "1h": "hourly",
+      "4h": "hourly",
+      "1d": "daily"
+    },
+    "batch_size": 10,
+    "market_open": "09:30",
+    "market_close": "16:00",
+    "extended_hours": true,
+    "max_retries": 3,
+    "retry_delay": 5,
+    "cache_duration": 300
+  },
+  
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 0,
+    "password": "${REDIS_PASSWORD}",
+    "decode_responses": true
+  },
+  
+  "webserver": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "cors_origins": ["*"],
+    "enable_docs": true
+  },
+  
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "handlers": ["console", "file"],
+    "file_path": "logs/streaming.log",
+    "max_bytes": 10485760,
+    "backup_count": 5
+  }
+}

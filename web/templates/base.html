@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TA Dashboard - {% block title %}{% endblock %}</title>
+    <link href="/static/css/ta-dashboard.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="brand">TA Screener</a>
+            <div class="nav-items">
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                <a href="/strategies" class="nav-link">Strategies</a>
+                <a href="/backtest" class="nav-link">Backtesting</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="/static/js/ta-charts.js"></script>
+</body>
+</html>

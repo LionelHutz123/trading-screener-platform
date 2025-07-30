@@ -1,0 +1,7 @@
+{
+  "AAPL_1h_backtest": {
+    "success": false,
+    "processing_time": 0.0,
+    "error": "cannot pickle 'duckdb.duckdb.DuckDBPyConnection' object"
+  }
+}
