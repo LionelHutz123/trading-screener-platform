@@ -7,7 +7,8 @@ import os
 import uvicorn
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 import logging
 from datetime import datetime
 import json
@@ -34,9 +35,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 async def root():
-    """Root endpoint"""
+    """Serve the main dashboard"""
+    try:
+        with open("index.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return {"message": "Trading Screener API", "status": "operational", "timestamp": datetime.now().isoformat()}
+
+@app.get("/app.js")
+async def serve_js():
+    """Serve the JavaScript file"""
+    try:
+        return FileResponse("app.js", media_type="application/javascript")
+    except FileNotFoundError:
+        return {"error": "JavaScript file not found"}
+
+@app.get("/api")
+async def api_root():
+    """API root endpoint"""
     return {"message": "Trading Screener API", "status": "operational", "timestamp": datetime.now().isoformat()}
 
 @app.get("/health")
