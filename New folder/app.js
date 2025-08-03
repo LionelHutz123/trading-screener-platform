@@ -1,178 +1,16 @@
-// HutzTrades Secure Dashboard JavaScript
+// Trading Screener Dashboard JavaScript
 class TradingScreenerDashboard {
     constructor() {
         this.apiUrl = 'https://trading-screener-lerd2.ondigitalocean.app';
-        this.rateLimitInfo = {
-            remaining: null,
-            reset: null,
-            limit: null
-        };
-        this.securityFeatures = {
-            rateLimitingEnabled: true,
-            ddosProtectionActive: true,
-            monitoringEnabled: true
-        };
         this.init();
     }
 
     async init() {
-        this.setupSecurityIndicators();
         await this.checkSystemHealth();
         await this.loadTopStrategies();
         await this.loadBacktestResults();
         this.setupEventListeners();
         this.startHealthMonitoring();
-        this.startSecurityMonitoring();
-    }
-
-    setupSecurityIndicators() {
-        // Add security status indicators to the UI
-        const systemStatus = document.getElementById('systemStatus');
-        if (systemStatus && this.securityFeatures.rateLimitingEnabled) {
-            systemStatus.title = 'System protected with rate limiting and DDoS protection';
-        }
-    }
-
-    // Enhanced fetch with security handling
-    async secureApiCall(url, options = {}) {
-        try {
-            const defaultOptions = {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'User-Agent': 'HutzTrades-Dashboard/2.0'
-                },
-                ...options
-            };
-
-            const response = await fetch(url, defaultOptions);
-            
-            // Extract rate limit headers
-            this.updateRateLimitInfo(response);
-            
-            // Handle rate limiting
-            if (response.status === 429) {
-                const retryAfter = response.headers.get('Retry-After') || 60;
-                this.handleRateLimit(retryAfter);
-                throw new Error(`Rate limited. Retry after ${retryAfter} seconds.`);
-            }
-            
-            // Handle security blocks
-            if (response.status === 403) {
-                this.handleSecurityBlock();
-                throw new Error('Request blocked by security system');
-            }
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error(`API call failed for ${url}:`, error);
-            throw error;
-        }
-    }
-
-    updateRateLimitInfo(response) {
-        // Extract rate limit information from headers
-        const limit = response.headers.get('X-RateLimit-Limit');
-        const remaining = response.headers.get('X-RateLimit-Remaining');
-        const reset = response.headers.get('X-RateLimit-Reset');
-        
-        if (limit) this.rateLimitInfo.limit = parseInt(limit);
-        if (remaining) this.rateLimitInfo.remaining = parseInt(remaining);
-        if (reset) this.rateLimitInfo.reset = parseInt(reset);
-        
-        this.updateRateLimitDisplay();
-    }
-
-    updateRateLimitDisplay() {
-        // Show rate limit info if remaining requests are low
-        if (this.rateLimitInfo.remaining !== null && this.rateLimitInfo.remaining < 10) {
-            this.showRateLimitWarning();
-        }
-    }
-
-    showRateLimitWarning() {
-        const warningDiv = document.createElement('div');
-        warningDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed';
-        warningDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
-        warningDiv.innerHTML = `
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Rate Limit Warning</strong><br>
-            Only ${this.rateLimitInfo.remaining} requests remaining in this window.
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.body.appendChild(warningDiv);
-        
-        setTimeout(() => {
-            if (warningDiv.parentNode) {
-                warningDiv.remove();
-            }
-        }, 5000);
-    }
-
-    handleRateLimit(retryAfter) {
-        const rateLimitDiv = document.createElement('div');
-        rateLimitDiv.className = 'alert alert-danger position-fixed';
-        rateLimitDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
-        rateLimitDiv.innerHTML = `
-            <i class="bi bi-shield-exclamation me-2"></i>
-            <strong>Rate Limited</strong><br>
-            Too many requests. Please wait ${retryAfter} seconds before trying again.
-            <div class="mt-2">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                         role="progressbar" style="width: 100%"></div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(rateLimitDiv);
-        
-        setTimeout(() => {
-            if (rateLimitDiv.parentNode) {
-                rateLimitDiv.remove();
-            }
-        }, retryAfter * 1000);
-    }
-
-    handleSecurityBlock() {
-        const blockDiv = document.createElement('div');
-        blockDiv.className = 'alert alert-danger position-fixed';
-        blockDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
-        blockDiv.innerHTML = `
-            <i class="bi bi-shield-x me-2"></i>
-            <strong>Security Block</strong><br>
-            Your request was blocked by our security system. 
-            Please contact support if you believe this is an error.
-        `;
-        document.body.appendChild(blockDiv);
-        
-        setTimeout(() => {
-            if (blockDiv.parentNode) {
-                blockDiv.remove();
-            }
-        }, 10000);
-    }
-
-    startSecurityMonitoring() {
-        // Monitor security status every 5 minutes
-        setInterval(async () => {
-            try {
-                const response = await this.secureApiCall(`${this.apiUrl}/api/status`);
-                if (response.security) {
-                    this.securityFeatures = {
-                        rateLimitingEnabled: response.security.rate_limiting === 'enabled',
-                        ddosProtectionActive: response.security.ddos_protection === 'active',
-                        monitoringEnabled: response.security.monitoring === 'active'
-                    };
-                }
-            } catch (error) {
-                console.warn('Security monitoring check failed:', error);
-            }
-        }, 300000); // 5 minutes
     }
 
     setupEventListeners() {
@@ -195,28 +33,18 @@ class TradingScreenerDashboard {
     async checkSystemHealth() {
         const statusElement = document.getElementById('systemStatus');
         try {
-            const data = await this.secureApiCall(`${this.apiUrl}/health`);
+            const response = await fetch(`${this.apiUrl}/health`);
+            const data = await response.json();
             
             if (data.status === 'healthy') {
                 statusElement.className = 'status-badge status-healthy';
+                statusElement.innerHTML = '<i class="bi bi-check-circle me-1"></i>System Healthy';
                 
-                // Enhanced status with security info
-                let statusText = '<i class="bi bi-check-circle me-1"></i>System Healthy';
-                if (data.security && data.security.enabled) {
-                    statusText += ' <i class="bi bi-shield-check ms-1" title="Security Active"></i>';
-                }
-                statusElement.innerHTML = statusText;
-                
-                // Update metrics with enhanced security info
+                // Update metrics
                 document.getElementById('dataPoints').textContent = data.data_points?.toLocaleString() || 'N/A';
                 document.getElementById('apiVersion').textContent = data.version || 'N/A';
                 document.getElementById('dbStatus').textContent = data.database || 'N/A';
                 document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-                
-                // Update security status if available
-                if (data.security) {
-                    this.updateSecurityDisplay(data.security);
-                }
             } else {
                 throw new Error('System not healthy');
             }
@@ -224,51 +52,14 @@ class TradingScreenerDashboard {
             statusElement.className = 'status-badge status-error';
             statusElement.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>System Error';
             console.error('Health check failed:', error);
-            
-            // Show user-friendly error message
-            this.showErrorNotification('System health check failed. Some features may be unavailable.');
         }
-    }
-
-    updateSecurityDisplay(securityStatus) {
-        // Update security indicators in the UI
-        const securityIndicators = {
-            'rate_limiting': securityStatus.rate_limiting,
-            'ddos_protection': securityStatus.ddos_protection,
-            'monitoring': securityStatus.monitoring
-        };
-        
-        // Store security status for reference
-        this.securityFeatures = {
-            rateLimitingEnabled: securityStatus.rate_limiting,
-            ddosProtectionActive: securityStatus.ddos_protection,
-            monitoringEnabled: securityStatus.monitoring
-        };
-    }
-
-    showErrorNotification(message) {
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'alert alert-warning alert-dismissible fade show position-fixed';
-        errorDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
-        errorDiv.innerHTML = `
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Connection Issue</strong><br>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
-        document.body.appendChild(errorDiv);
-        
-        setTimeout(() => {
-            if (errorDiv.parentNode) {
-                errorDiv.remove();
-            }
-        }, 8000);
     }
 
     async loadTopStrategies() {
         const container = document.getElementById('topStrategies');
         try {
-            const data = await this.secureApiCall(`${this.apiUrl}/api/strategies/top`);
+            const response = await fetch(`${this.apiUrl}/api/strategies/top`);
+            const data = await response.json();
             
             if (data.strategies && data.strategies.length > 0) {
                 container.innerHTML = data.strategies.map(strategy => `
@@ -281,7 +72,7 @@ class TradingScreenerDashboard {
                         <div class="text-end">
                             <div class="badge bg-primary">Sharpe: ${strategy.sharpe_ratio}</div>
                             <br>
-                            <small class="text-success">${strategy.total_return || strategy.return}% return</small>
+                            <small class="text-success">${strategy.return}% return</small>
                         </div>
                     </div>
                 `).join('');
@@ -297,7 +88,8 @@ class TradingScreenerDashboard {
     async loadBacktestResults() {
         const container = document.getElementById('resultsTable');
         try {
-            const data = await this.secureApiCall(`${this.apiUrl}/api/backtest/results`);
+            const response = await fetch(`${this.apiUrl}/api/backtest/results`);
+            const data = await response.json();
             
             if (data.results && data.results.length > 0) {
                 container.innerHTML = `
@@ -381,8 +173,11 @@ class TradingScreenerDashboard {
         statusDiv.style.display = 'block';
         
         try {
-            const data = await this.secureApiCall(`${this.apiUrl}/api/backtest/run`, {
+            const response = await fetch(`${this.apiUrl}/api/backtest/run`, {
                 method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify({
                     symbols,
                     timeframes,
@@ -391,7 +186,9 @@ class TradingScreenerDashboard {
                 })
             });
             
-            if (data.status === 'queued' || data.status === 'started') {
+            const data = await response.json();
+            
+            if (data.status === 'started') {
                 progressDiv.innerHTML = `
                     <div><strong>Backtest Parameters:</strong></div>
                     <ul class="mb-2">

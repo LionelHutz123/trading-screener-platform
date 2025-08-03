@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Any
 from datetime import datetime, timezone, timedelta
 import pandas as pd
 from dataclasses import dataclass
@@ -9,7 +9,11 @@ import json
 from pathlib import Path
 
 from ..duckdb_handler import DuckDBHandler
-from ..historical.alpaca_data_fetcher import get_alpaca_data
+# Import from root directory
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../..'))
+from alpaca_fetcher_new import get_alpaca_data
 
 logger = logging.getLogger(__name__)
 

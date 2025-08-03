@@ -1,3 +1,48 @@
+# Core API Framework
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
-python-dotenv==1.0.0 
+python-dotenv==1.0.0
+
+# Streaming and Real-time Data
+alpaca-trade-api==3.1.1
+websockets==12.0
+
+# Security Dependencies
+requests==2.31.0
+ipaddress==1.0.23
+
+# Data Processing
+pandas==2.1.4
+numpy==1.24.3
+
+# Database
+duckdb==0.9.2
+
+# Monitoring and Logging
+structlog==23.2.0
+
+# Async Support
+aiofiles==23.2.0
+
+# HTTP Client
+httpx==0.25.2
+
+# JSON Processing
+orjson==3.9.10
+
+# Date/Time Utilities
+python-dateutil==2.8.2
+
+# Environment Management
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# Additional Dependencies for Production
+ratelimit==2.2.1
+tenacity==8.2.3
+tqdm==4.66.1
+
+# Optional: Email Support for Alerts
+# Uncomment if email alerts are needed
+# smtplib (built-in)
+# email (built-in) 

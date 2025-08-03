@@ -1,0 +1,209 @@
+{
+  "name": "HutzTrades Cloudflare Security Configuration",
+  "description": "Recommended Cloudflare settings for hutztrades.com",
+  
+  "dns_settings": {
+    "proxied_records": [
+      {
+        "type": "A",
+        "name": "@",
+        "content": "netlify_ip_address",
+        "proxied": true,
+        "comment": "Root domain with CF protection"
+      },
+      {
+        "type": "CNAME", 
+        "name": "www",
+        "content": "hutztrades.com",
+        "proxied": true,
+        "comment": "WWW subdomain with CF protection"
+      },
+      {
+        "type": "CNAME",
+        "name": "api", 
+        "content": "trading-screener-lerd2.ondigitalocean.app",
+        "proxied": true,
+        "comment": "API endpoint with CF protection"
+      }
+    ]
+  },
+
+  "security_settings": {
+    "security_level": "high",
+    "challenge_passage": "js_challenge",
+    
+    "ddos_protection": {
+      "enabled": true,
+      "sensitivity": "high"
+    },
+    
+    "bot_management": {
+      "enabled": true,
+      "mode": "fight",
+      "score_threshold": 30
+    },
+    
+    "rate_limiting": [
+      {
+        "name": "API Rate Limit",
+        "pattern": "api.hutztrades.com/api/*",
+        "threshold": 100,
+        "period": 60,
+        "action": "challenge"
+      },
+      {
+        "name": "Login Protection", 
+        "pattern": "hutztrades.com/login*",
+        "threshold": 5,
+        "period": 300,
+        "action": "block"
+      },
+      {
+        "name": "General Site Protection",
+        "pattern": "hutztrades.com/*",
+        "threshold": 1000,
+        "period": 60,
+        "action": "challenge"
+      }
+    ],
+
+    "firewall_rules": [
+      {
+        "name": "Block Malicious Bots",
+        "expression": "(cf.threat_score gt 30) or (cf.bot_management.score lt 30)",
+        "action": "block"
+      },
+      {
+        "name": "Block Common Attack Patterns",
+        "expression": "(http.request.uri.path contains \"wp-admin\") or (http.request.uri.path contains \"phpmyadmin\") or (http.request.uri.path contains \".env\")",
+        "action": "block"
+      },
+      {
+        "name": "Block SQL Injection Attempts",
+        "expression": "(http.request.uri.query contains \"union select\") or (http.request.uri.query contains \"drop table\")",
+        "action": "block"
+      },
+      {
+        "name": "Block XSS Attempts",
+        "expression": "(http.request.uri.query contains \"<script\") or (http.request.uri.query contains \"javascript:\")",
+        "action": "block"
+      },
+      {
+        "name": "Geography Block (Optional)",
+        "expression": "(ip.geoip.country in {\"CN\" \"RU\" \"KP\"})",
+        "action": "challenge",
+        "enabled": false,
+        "comment": "Enable if needed for geographic restrictions"
+      }
+    ]
+  },
+
+  "performance_settings": {
+    "caching": {
+      "browser_cache_ttl": 31536000,
+      "edge_cache_ttl": 7200,
+      "cache_level": "aggressive"
+    },
+    
+    "compression": {
+      "brotli": true,
+      "gzip": true
+    },
+    
+    "minification": {
+      "html": true,
+      "css": true, 
+      "javascript": true
+    },
+    
+    "rocket_loader": false,
+    "auto_minify": true,
+    "polish": "lossless"
+  },
+
+  "ssl_settings": {
+    "ssl_mode": "full_strict",
+    "tls_version": "1.2",
+    "hsts": {
+      "enabled": true,
+      "max_age": 31536000,
+      "include_subdomains": true,
+      "preload": true
+    },
+    "always_use_https": true,
+    "automatic_https_rewrites": true
+  },
+
+  "page_rules": [
+    {
+      "url": "hutztrades.com/api/*",
+      "settings": {
+        "cache_level": "bypass",
+        "security_level": "high",
+        "ssl": "strict"
+      }
+    },
+    {
+      "url": "hutztrades.com/*.js",
+      "settings": {
+        "cache_level": "cache_everything",
+        "edge_cache_ttl": 31536000,
+        "browser_cache_ttl": 31536000
+      }
+    },
+    {
+      "url": "hutztrades.com/*.css", 
+      "settings": {
+        "cache_level": "cache_everything",
+        "edge_cache_ttl": 31536000,
+        "browser_cache_ttl": 31536000
+      }
+    }
+  ],
+
+  "custom_error_pages": [
+    {
+      "error_code": 403,
+      "url": "https://hutztrades.com/403.html"
+    },
+    {
+      "error_code": 404,
+      "url": "https://hutztrades.com/404.html" 
+    },
+    {
+      "error_code": 429,
+      "url": "https://hutztrades.com/429.html"
+    }
+  ],
+
+  "recommended_dns_records": [
+    {
+      "type": "TXT",
+      "name": "@",
+      "content": "v=spf1 -all",
+      "comment": "SPF record to prevent email spoofing"
+    },
+    {
+      "type": "TXT", 
+      "name": "_dmarc",
+      "content": "v=DMARC1; p=reject; rua=mailto:dmarc@hutztrades.com",
+      "comment": "DMARC policy for email security"
+    }
+  ],
+
+  "monitoring_setup": {
+    "analytics": true,
+    "security_insights": true,
+    "firewall_analytics": true,
+    "bot_analytics": true
+  },
+
+  "implementation_notes": [
+    "1. Start with security level 'medium' and increase to 'high' gradually",
+    "2. Monitor firewall events closely for the first week",
+    "3. Adjust rate limiting thresholds based on legitimate traffic patterns", 
+    "4. Enable geographic blocking only if abuse from specific regions is detected",
+    "5. Test all functionality after enabling each security feature",
+    "6. Set up email notifications for security events"
+  ]
+}

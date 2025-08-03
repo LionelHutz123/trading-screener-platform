@@ -1,12 +1,12 @@
 # Digital Ocean App Platform Configuration
-# Trading Screener & Backtesting Platform
+# HutzTrades Secure Trading Platform with Enterprise Security
 
-name: trading-screener
+name: hutztrades-secure-api
 region: sfo
 
 services:
-  # Main Trading Screener API
-  - name: trading-api
+  # HutzTrades Secure API with Enhanced Security
+  - name: hutztrades-secure-api
     source_dir: /
     github:
       repo: your-repo/trading-screener
@@ -14,30 +14,67 @@ services:
     dockerfile_path: Dockerfile
     
     envs:
+      # Security: All sensitive values are now environment secrets
       - key: ALPACA_API_KEY
-        value: PK3FA0MFPOWADZVIJBF7
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
       - key: ALPACA_SECRET_KEY
-        value: iemytkjQt5yxRPBoSe62DpyoQ5b2oXBunV8e1BiA
+        scope: RUN_AND_BUILD_TIME
         type: SECRET
       - key: REDIS_PASSWORD
-        value: y9+DMl5bQTHIdkDtp2Q8SNhbTnfVI3tvG5MMiyIYH4w=
+        scope: RUN_AND_BUILD_TIME
         type: SECRET
+      
+      # Application Configuration
       - key: ENV
         value: production
+      - key: PORT
+        value: "8080"
       - key: DATABASE_URL
         value: ${db.DATABASE_URL}
+      - key: REDIS_URL
+        value: ${redis.DATABASE_URL}
+      
+      # Streaming Configuration
+      - key: ENABLE_STREAMING
+        value: "true"
+      - key: STREAMING_SYMBOLS
+        value: "AAPL,MSFT,GOOGL,AMZN,TSLA,META,NVDA,SPY,QQQ"
+      - key: STREAMING_TIMEFRAMES
+        value: "1m,5m,15m,1h"
+      
+      # Security Configuration (Optional - for email alerts)
+      - key: ALERT_EMAIL_USER
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: ALERT_EMAIL_PASSWORD
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
+      - key: ALERT_RECIPIENTS
+        value: "admin@hutztrades.com"
+      - key: SECURITY_WEBHOOK_URL
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
         
     instance_count: 1
     instance_size_slug: professional-xs  # 1 vCPU, 1GB RAM
     
     http_port: 8080
     
+    # Enhanced health check with security validation
     health_check:
       http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      failure_threshold: 3
+      success_threshold: 1
     
     routes:
       - path: /api
       - path: /health
+      - path: /docs
+        preserve_path_prefix: true
       
   # Frontend Dashboard
   - name: frontend
@@ -73,9 +110,10 @@ jobs:
     
     envs:
       - key: ALPACA_API_KEY
-        value: PK3FA0MFPOWADZVIJBF7
+        scope: RUN_AND_BUILD_TIME
+        type: SECRET
       - key: ALPACA_SECRET_KEY
-        value: iemytkjQt5yxRPBoSe62DpyoQ5b2oXBunV8e1BiA
+        scope: RUN_AND_BUILD_TIME
         type: SECRET
       - key: DATABASE_URL
         value: ${db.DATABASE_URL}

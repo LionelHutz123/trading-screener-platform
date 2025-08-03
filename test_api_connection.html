@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Connection Test - HutzTrades</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .test-result { margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loading { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .code-block { background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">🔌 API Connection Test</h1>
+        <p class="lead">Testing connection to HutzTrades backend API</p>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Connection Tests</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="testHealthBtn" class="btn btn-primary mb-3">Test Health Endpoint</button>
+                        <button id="testStrategiesBtn" class="btn btn-secondary mb-3 ms-2">Test Strategies Endpoint</button>
+                        <button id="testBacktestBtn" class="btn btn-warning mb-3 ms-2">Test Backtest Endpoint</button>
+                        
+                        <div id="testResults"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>API Configuration</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="code-block">
+                            <strong>Base URL:</strong><br>
+                            <span id="apiUrl">https://trading-screener-lerd2.ondigitalocean.app</span>
+                        </div>
+                        <hr>
+                        <div class="code-block">
+                            <strong>Endpoints:</strong><br>
+                            /health<br>
+                            /api/strategies/top<br>
+                            /api/backtest/run<br>
+                            /api/backtest/results
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = 'https://trading-screener-lerd2.ondigitalocean.app';
+        const resultsDiv = document.getElementById('testResults');
+
+        function addResult(test, status, message, data = null) {
+            const div = document.createElement('div');
+            div.className = `test-result ${status}`;
+            
+            let content = `<strong>${test}:</strong> ${message}`;
+            if (data) {
+                content += `<br><pre class="mt-2">${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            div.innerHTML = content;
+            resultsDiv.appendChild(div);
+        }
+
+        function clearResults() {
+            resultsDiv.innerHTML = '';
+        }
+
+        async function testHealth() {
+            addResult('Health Check', 'loading', 'Testing connection...');
+            
+            try {
+                const response = await fetch(`${apiUrl}/health`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('Health Check', 'success', `✅ Connected successfully! Status: ${response.status}`, data);
+                } else {
+                    addResult('Health Check', 'error', `❌ HTTP Error: ${response.status} - ${response.statusText}`);
+                }
+            } catch (error) {
+                addResult('Health Check', 'error', `❌ Connection failed: ${error.message}`);
+            }
+        }
+
+        async function testStrategies() {
+            addResult('Strategies Endpoint', 'loading', 'Testing strategies endpoint...');
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/strategies/top?limit=5`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('Strategies Endpoint', 'success', `✅ Strategies loaded! Count: ${data.strategies?.length || 0}`, data);
+                } else {
+                    addResult('Strategies Endpoint', 'error', `❌ HTTP Error: ${response.status} - ${response.statusText}`);
+                }
+            } catch (error) {
+                addResult('Strategies Endpoint', 'error', `❌ Request failed: ${error.message}`);
+            }
+        }
+
+        async function testBacktest() {
+            addResult('Backtest Endpoint', 'loading', 'Testing backtest endpoint...');
+            
+            try {
+                const testPayload = {
+                    symbols: ['AAPL'],
+                    timeframes: ['1h'],
+                    start_date: '2024-01-01',
+                    end_date: '2024-02-01'
+                };
+                
+                const response = await fetch(`${apiUrl}/api/backtest/run`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    addResult('Backtest Endpoint', 'success', `✅ Backtest initiated! Job ID: ${data.job_id || 'N/A'}`, data);
+                } else {
+                    addResult('Backtest Endpoint', 'error', `❌ HTTP Error: ${response.status} - ${response.statusText}`);
+                }
+            } catch (error) {
+                addResult('Backtest Endpoint', 'error', `❌ Request failed: ${error.message}`);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('testHealthBtn').addEventListener('click', () => {
+            clearResults();
+            testHealth();
+        });
+
+        document.getElementById('testStrategiesBtn').addEventListener('click', () => {
+            clearResults();
+            testStrategies();
+        });
+
+        document.getElementById('testBacktestBtn').addEventListener('click', () => {
+            clearResults();
+            testBacktest();
+        });
+
+        // Auto-test health on load
+        window.addEventListener('load', () => {
+            setTimeout(testHealth, 1000);
+        });
+    </script>
+</body>
+</html>

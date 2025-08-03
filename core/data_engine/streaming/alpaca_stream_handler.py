@@ -8,7 +8,7 @@ from enum import Enum
 import json
 
 from alpaca_trade_api import Stream
-from alpaca_trade_api.common import RawData
+from alpaca_trade_api.stream import Trade, Bar, Quote
 
 from ..duckdb_handler import DuckDBHandler
 from ...ta_engine.unified_strategy_engine import UnifiedStrategyEngine
@@ -151,7 +151,7 @@ class AlpacaStreamHandler:
         
         self.logger.info("Stream handler stopped")
     
-    async def _handle_trade(self, trade: RawData):
+    async def _handle_trade(self, trade: Trade):
         """Handle incoming trade data"""
         try:
             market_data = MarketData(
@@ -177,7 +177,7 @@ class AlpacaStreamHandler:
         except Exception as e:
             self.logger.error(f"Error handling trade: {str(e)}")
     
-    async def _handle_bar(self, bar: RawData):
+    async def _handle_bar(self, bar: Bar):
         """Handle incoming bar data"""
         try:
             market_data = MarketData(
@@ -189,8 +189,8 @@ class AlpacaStreamHandler:
                 low=bar.low,
                 close=bar.close,
                 volume=bar.volume,
-                vwap=bar.vwap,
-                trade_count=bar.trade_count
+                vwap=getattr(bar, 'vwap', None),
+                trade_count=getattr(bar, 'trade_count', None)
             )
             
             # Add to buffer
@@ -207,7 +207,7 @@ class AlpacaStreamHandler:
         except Exception as e:
             self.logger.error(f"Error handling bar: {str(e)}")
     
-    async def _handle_quote(self, quote: RawData):
+    async def _handle_quote(self, quote: Quote):
         """Handle incoming quote data"""
         try:
             market_data = MarketData(

@@ -25,7 +25,11 @@
       "Bash(git commit:*)",
       "Bash(git branch:*)",
       "Bash(git remote add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(set ENV=development)",
+      "Bash(set PORT=8080)",
+      "Bash(pip install:*)",
+      "Bash(taskkill:*)"
     ],
     "deny": []
   }

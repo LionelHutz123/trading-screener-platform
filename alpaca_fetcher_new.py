@@ -5,7 +5,7 @@ from tqdm import tqdm
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
 from ratelimit import limits, sleep_and_retry
 import requests
-from core.data_engine.historical.sql_database import SQLDatabaseHandler
+from core.data_engine.sql_database import SQLDatabaseHandler
 import time
 from alpaca_trade_api.rest import REST, TimeFrame
 from datetime import datetime, timezone
