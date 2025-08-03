@@ -94,5 +94,5 @@ LABEL \
 # Security: Drop all capabilities and add only necessary ones
 USER trading
 
-# Run the secure API
-CMD ["python", "app_platform_api.py"]
+# Run the API with fallback
+CMD ["sh", "-c", "python app_platform_api.py || python app_minimal.py"]

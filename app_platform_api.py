@@ -21,9 +21,16 @@ import asyncio
 from security_middleware import security_middleware, rate_limit
 from security_monitor import security_monitor, monitor_request, monitor_blocked_ip, monitor_suspicious_activity
 
-# Import streaming components
-from services.streaming_service import StreamingService
-from core.signal_processor.real_time_processor import TradingSignal
+# Import streaming components (with error handling)
+try:
+    from services.streaming_service import StreamingService
+    from core.signal_processor.real_time_processor import TradingSignal
+    STREAMING_AVAILABLE = True
+except ImportError as e:
+    print(f"Streaming components not available: {e}")
+    STREAMING_AVAILABLE = False
+    StreamingService = None
+    TradingSignal = None
 
 # Configure logging
 logging.basicConfig(
@@ -136,6 +143,9 @@ websocket_connections = set()
 async def get_streaming_service():
     """Get or create streaming service"""
     global streaming_service
+    if not STREAMING_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Streaming service not available")
+        
     if streaming_service is None:
         # Initialize with paper trading credentials
         config = {
@@ -514,6 +524,12 @@ async def security_status(request: Request):
 @rate_limit(requests_per_minute=30)
 async def get_stream_status(request: Request):
     """Get real-time streaming service status"""
+    if not STREAMING_AVAILABLE:
+        return {
+            "stream_status": "unavailable",
+            "message": "Streaming service not installed",
+            "timestamp": datetime.now().isoformat()
+        }
     try:
         async with get_streaming_service() as service:
             status = service.get_status()
